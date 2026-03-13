@@ -1,15 +1,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <time.h>
 #include <vector>
 
 using namespace std;
 
 int x = 30, y = 30, z = 30;
-int baseCoef = 2, neighborIntensity = 8;
+int baseCoef = 7, neighborIntensity = 12;
 
 struct block {
-  long int grade;
+  double grade;
   bool isOre;
 };
 
@@ -17,9 +18,15 @@ void sliceSoil(const vector<vector<vector<block>>> &arr) {
   for (int i = 0; i < y; i++) {
     int oreCount = 0;
     for (int j = 0; j < z; j++) {
-      string visual = arr[0][i][j].isOre ? " @" : " *";
+      bool isOre = arr[0][i][j].isOre;
+      double grade = arr[0][i][j].grade;
+      string visual = !isOre            ? " ."
+                      : grade < 1.0 / 2 ? " +"
+                      : grade < 4.0 / 5 ? " #"
+                                        : " @";
+
       cout << visual;
-      if (arr[0][i][j].isOre == true) {
+      if (isOre == true) {
         oreCount++;
       }
     }
@@ -56,20 +63,31 @@ void plantOres(vector<vector<vector<block>>> &arr) {
   }
 }
 
+void seedGrades(vector<vector<vector<block>>> &arr) {
+  for (int i = 0; i < x; i++) {
+    for (int j = 0; j < y; j++) {
+      for (int k = 0; k < z; k++) {
+        arr[i][j][k].grade = (double)rand() / RAND_MAX;
+      }
+    }
+  }
+}
+
 int main() {
   srand(time(NULL));
+
   vector<vector<vector<block>>> litho(
-      x, vector<vector<block>>(
-             y, vector<block>(z, {grade : rand(), isOre : false})));
+      x, vector<vector<block>>(y, vector<block>(z, {0.0, false})));
 
   cout << endl;
   cout << ">> Viviore 0.0.1 by @qwyzex" << endl;
 
-  cout << "Corner Grade: 0." << litho[0][0][0].grade << endl;
+  cout << "Corner Grade: " << litho[0][0][0].grade << endl;
   cout << "Base Coeficient: " << baseCoef << "%" << endl;
   cout << "Neighbouring Intensity: " << neighborIntensity << "%" << endl;
 
   plantOres(litho);
+  seedGrades(litho);
   sliceSoil(litho);
 
   return 0;
