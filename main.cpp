@@ -7,7 +7,8 @@
 using namespace std;
 
 int x = 30, y = 30, z = 30;
-int baseCoef = 7, neighborIntensity = 12;
+int baseCoef = 7, neighborIntensity = 14, vacancyImpact = 2;
+int influence = 5;
 
 struct block {
   double grade;
@@ -39,23 +40,31 @@ void plantOres(vector<vector<vector<block>>> &arr) {
     for (int j = 0; j < y; j++) {
       for (int k = 0; k < z; k++) {
         int neighbours = 0;
+        int vacancy = 0;
 
         for (int a = -1; a < 2; a += 2) {
           for (int b = -1; b < 2; b += 2) {
             for (int c = -1; c < 2; c += 2) {
               if (k > 0 && k < z - 1 && arr[i][j][k + c].isOre == true) {
                 neighbours++;
+              } else {
+                vacancy++;
               }
             }
             if (j > 0 && j < y - 1 && arr[i][j + b][k].isOre == true) {
               neighbours++;
+            } else {
+              vacancy++;
             }
           }
           if (i > 0 && i < x - 1 && arr[i + a][j][k].isOre == true) {
             neighbours++;
+          } else {
+            vacancy++;
           }
         }
-        int chance = baseCoef + neighbours * neighborIntensity;
+        int chance = baseCoef + (neighbours * neighborIntensity) -
+                     (vacancy * vacancyImpact * baseCoef * 0.015);
 
         arr[i][j][k].isOre = rand() % 100 < chance;
       }
@@ -67,7 +76,35 @@ void seedGrades(vector<vector<vector<block>>> &arr) {
   for (int i = 0; i < x; i++) {
     for (int j = 0; j < y; j++) {
       for (int k = 0; k < z; k++) {
-        arr[i][j][k].grade = (double)rand() / RAND_MAX;
+        double baseGrade = (double)rand() / RAND_MAX;
+        double total = 0;
+
+        for (int a = -1; a < 2; a += 2) {
+          for (int b = -1; b < 2; b += 2) {
+            for (int c = -1; c < 2; c += 2) {
+              block ore = arr[i][j][k + c];
+              if (k > 0 && k < z - 1 && ore.isOre == true) {
+                total +=
+                    ore.grade > arr[i][j][k].grade ? ore.grade / 2 : ore.grade;
+              }
+            }
+            if (j > 0 && j < y - 1 && arr[i][j + b][k].isOre == true) {
+              block ore = arr[i][j + b][k];
+              total +=
+                  ore.grade > arr[i][j][k].grade ? ore.grade / 2 : ore.grade;
+            }
+          }
+          if (i > 0 && i < x - 1 && arr[i + a][j][k].isOre == true) {
+            block ore = arr[i + a][j][k];
+            total += ore.grade > arr[i][j][k].grade ? ore.grade / 2 : ore.grade;
+          }
+        }
+
+        if (arr[i][j][k].isOre) {
+          arr[i][j][k].grade = baseGrade + ((0.1) * (total / 6));
+        } else {
+          arr[i][j][k].grade = 0.0;
+        }
       }
     }
   }
