@@ -57,7 +57,7 @@ void castWindow(const vector<OreVoxel> &oreBlocks,
 
   while (!WindowShouldClose()) {
     BeginDrawing();
-    ClearBackground(mode3D ? GRAY : RAYWHITE);
+    ClearBackground(mode3D ? RAYWHITE : RAYWHITE);
 
     if (IsKeyPressed(KEY_TAB))
       mode3D = !mode3D;

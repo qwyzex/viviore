@@ -2,6 +2,7 @@
 #include "../model/block.h"
 #include "../model/orevoxel.h"
 #include "raylib.h"
+#include <cmath>
 #include <cstdlib>
 #include <time.h>
 #include <vector>
@@ -18,36 +19,42 @@ Color getColor(double grade) {
 }
 
 void seedGrades(vector<vector<vector<block>>> &arr, vector<OreVoxel> &oreBlocks,
-                int &x, int &y, int &z) {
+                int &x, int &y, int &z, float depthCurve) {
+  float curve = depthCurve > 0.0f ? depthCurve : 1.0f;
+
+  const int dirs[6][3] = {{1, 0, 0},  {-1, 0, 0}, {0, 1, 0},
+                          {0, -1, 0}, {0, 0, 1},  {0, 0, -1}};
+
   for (int i = 0; i < x; i++) {
     for (int j = 0; j < y; j++) {
+      // Depth ratio (0 = surface, 1 = deepest)
+      float depthRatio = y > 1 ? (float)j / (float)(y - 1) : 0.0f;
+      float depthBias = logf(1.0f + curve * depthRatio) / logf(1.0f + curve);
+      float gradeDepthScale = 0.25f + 0.75f * depthBias;
+
       for (int k = 0; k < z; k++) {
         double baseGrade = (double)rand() / RAND_MAX;
         double total = 0;
+        double currentGrade = arr[i][j][k].grade;
 
-        for (int a = -1; a < 2; a += 2) {
-          for (int b = -1; b < 2; b += 2) {
-            for (int c = -1; c < 2; c += 2) {
-              block ore = arr[i][j][k + c];
-              if (k > 0 && k < z - 1 && ore.isOre == true) {
-                total +=
-                    ore.grade > arr[i][j][k].grade ? ore.grade / 2 : ore.grade;
-              }
-            }
-            if (j > 0 && j < y - 1 && arr[i][j + b][k].isOre == true) {
-              block ore = arr[i][j + b][k];
-              total +=
-                  ore.grade > arr[i][j][k].grade ? ore.grade / 2 : ore.grade;
-            }
-          }
-          if (i > 0 && i < x - 1 && arr[i + a][j][k].isOre == true) {
-            block ore = arr[i + a][j][k];
-            total += ore.grade > arr[i][j][k].grade ? ore.grade / 2 : ore.grade;
-          }
+        for (auto &d : dirs) {
+          int ni = i + d[0];
+          int nj = j + d[1];
+          int nk = k + d[2];
+
+          if (ni < 0 || ni >= x || nj < 0 || nj >= y || nk < 0 || nk >= z)
+            continue;
+
+          if (!arr[ni][nj][nk].isOre)
+            continue;
+
+          double oreGrade = arr[ni][nj][nk].grade;
+          total += oreGrade > currentGrade ? oreGrade / 2.0 : oreGrade;
         }
 
         if (arr[i][j][k].isOre) {
-          arr[i][j][k].grade = baseGrade + ((0.1) * (total / 6));
+          arr[i][j][k].grade =
+              (baseGrade * gradeDepthScale) + (0.1 * (total / 6.0));
           oreBlocks.push_back({
               i,
               j,

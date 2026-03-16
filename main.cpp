@@ -23,9 +23,16 @@
 
 using namespace std;
 
-int x = 40, y = 40, z = 40;
-int baseCoef = 4, neighborIntensity = 10, vacancyImpact = 3;
-int influence = 3;
+int x = 60, y = 60, z = 60;
+int baseCoef = 8, neighborIntensity = 15, vacancyImpact = 3;
+
+// Depth tuning parameters:
+//  - depthCurve: how quickly ore probability ramps up with depth (higher =>
+//  steeper/log growth)
+//  - rootDepthLayers: number of deepest layers treated as "root veins"; all ore
+//  must connect to these
+float depthCurve = 15.0f;
+int rootDepthLayers = 6;
 
 int main() {
   srand(time(NULL));
@@ -39,11 +46,16 @@ int main() {
   cout << "Corner Grade: " << litho[0][0][0].grade << endl;
   cout << "Base Coeficient: " << baseCoef << "%" << endl;
   cout << "Neighbouring Intensity: " << neighborIntensity << "%" << endl;
+  cout << "Depth Curve: " << depthCurve << " (higher => more depth-sensitive)"
+       << endl;
+  cout << "Root Depth Layers: " << rootDepthLayers
+       << " (deepest layers are treated as vein roots)" << endl;
 
   Axis currentAxis = Y;
 
-  plantOres(litho, x, y, z, baseCoef, neighborIntensity, vacancyImpact);
-  seedGrades(litho, oreBlocks, x, y, z);
+  plantOres(litho, x, y, z, baseCoef, neighborIntensity, vacancyImpact,
+            depthCurve, rootDepthLayers);
+  seedGrades(litho, oreBlocks, x, y, z, depthCurve);
   //   sliceSoil(litho, Y, 10, x, y, z);
 
   vector<OreVoxel> surfaceBlocks = extractSurface(oreBlocks);
