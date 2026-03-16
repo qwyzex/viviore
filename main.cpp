@@ -3,8 +3,10 @@
 #define CAMERA_IMPLEMENTATION
 #include "rcamera.h"
 #include "rlgl.h"
+#include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <initializer_list>
 #include <iostream>
 #include <string>
 #include <time.h>
@@ -384,26 +386,40 @@ void castWindow(const vector<vector<vector<block>>> &arr, Axis &axis) {
         break;
       }
 
-      slice = std::max(0, std::min(slice, maxSlice - 1));
+      slice = max(0, min(slice, maxSlice - 1));
 
       // 3D CUBE SLICE OVERVIEW
       Rectangle viewport = {920, 620, 240, 180};
       rlViewport(viewport.x, viewport.y, viewport.width, viewport.height);
-
       BeginMode3D(miniCam);
-      DrawCubeWires({0, 0, 0}, 4, 4, 4, DARKGRAY);
-      float p = (maxSlice > 1) ? (float)slice / (maxSlice - 1) * 4 - 2 : 0;
+
+      float maxDim = max({(float)x, (float)y, (float)z});
+      float sx = 4 * x / maxDim;
+      float sy = 4 * y / maxDim;
+      float sz = 4 * z / maxDim;
+      DrawCubeWires({0, 0, 0}, sx, sy, sz, BLACK);
+
+      float p;
+      if (axis == X)
+        p = (float)slice / (x - 1) * sx - sx / 2;
+      if (axis == Y)
+        p = (float)slice / (y - 1) * sy - sy / 2;
+      if (axis == Z)
+        p = (float)slice / (z - 1) * sz - sz / 2;
 
       if (axis == X)
-        DrawCube({p, 0, 0}, 0.05f, 4, 4, Fade(RED, 0.5f));
+        DrawCube({p, 0, 0}, 0.05f, sy, sz, Fade(RED, 0.5f));
       if (axis == Y)
-        DrawCube({0, p, 0}, 4, 0.05f, 4, Fade(RED, 0.5f));
+        DrawCube({0, p, 0}, sx, 0.05f, sz, Fade(RED, 0.5f));
       if (axis == Z)
-        DrawCube({0, 0, p}, 4, 4, 0.05f, Fade(RED, 0.5f));
+        DrawCube({0, 0, p}, sx, sy, 0.05f, Fade(RED, 0.5f));
 
-      DrawLine3D({0, 0, 0}, {2.9, 0, 0}, RED);
-      DrawLine3D({0, 0, 0}, {0, 2.9, 0}, GREEN);
-      DrawLine3D({0, 0, 0}, {0, 0, 2.9}, BLUE);
+      // 3-axes indicator
+      Vector3 origin = {-sx / 2, -sy / 2, -sz / 2};
+
+      DrawLine3D(origin, {origin.x + sx, origin.y, origin.z}, RED);
+      DrawLine3D(origin, {origin.x, origin.y + sy, origin.z}, GREEN);
+      DrawLine3D(origin, {origin.x, origin.y, origin.z + sz}, BLUE);
 
       EndMode3D();
       rlViewport(0, 0, GetScreenWidth(), GetScreenHeight());
