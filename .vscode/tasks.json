@@ -6,7 +6,8 @@
         {
             "label": "Run Viviore",
             "type": "shell",
-            "command": "g++ main.cpp -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o main && ./main",
+            // "command": "g++ main.cpp -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o main && ./main",
+            "command": "g++ $(find . -name '*.cpp') -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o viviore && ./viviore",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
