@@ -19,7 +19,7 @@ Color getColor(double grade) {
 }
 
 void seedGrades(vector<vector<vector<block>>> &arr, vector<OreVoxel> &oreBlocks,
-                int &x, int &y, int &z, float depthCurve) {
+                int &x, int &y, int &z, float &depthCurve) {
   float curve = depthCurve > 0.0f ? depthCurve : 1.0f;
 
   const int dirs[6][3] = {{1, 0, 0},  {-1, 0, 0}, {0, 1, 0},
@@ -27,8 +27,9 @@ void seedGrades(vector<vector<vector<block>>> &arr, vector<OreVoxel> &oreBlocks,
 
   for (int i = 0; i < x; i++) {
     for (int j = 0; j < y; j++) {
-      // Depth ratio (0 = surface, 1 = deepest)
-      float depthRatio = y > 1 ? (float)j / (float)(y - 1) : 0.0f;
+      // Depth ratio (0 = surface, 1 = deepest) according to rendering coords
+      // (y=0 is bottom, y=y-1 is surface in the current renderer).
+      float depthRatio = y > 1 ? (float)(y - 1 - j) / (float)(y - 1) : 0.0f;
       float depthBias = logf(1.0f + curve * depthRatio) / logf(1.0f + curve);
       float gradeDepthScale = 0.25f + 0.75f * depthBias;
 

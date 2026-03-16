@@ -2,6 +2,9 @@
 #include "raylib.h"
 #include "raymath.h"
 #define CAMERA_IMPLEMENTATION
+#include "../generation/planting.h"
+#include "../generation/seeding.h"
+#include "../processing/surface.h"
 #include "rcamera.h"
 #include "rlgl.h"
 #include "window.h"
@@ -27,9 +30,11 @@ void DrawColoredGrid(int slices, float spacing, Color color) {
   }
 }
 
-void castWindow(const vector<OreVoxel> &oreBlocks,
-                const vector<OreVoxel> &surfaceBlocks, Axis &axis, int &x,
-                int &y, int &z) {
+void castWindow(vector<OreVoxel> &oreBlocks, vector<OreVoxel> &surfaceBlocks,
+                Axis &axis, int &x, int &y, int &z,
+                vector<vector<vector<block>>> &litho, int &baseCoef,
+                int &neighborIntensity, int &vacancyImpact, float &depthCurve,
+                int &rootDepthLayers) {
   SetConfigFlags(FLAG_VSYNC_HINT);
   SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(1200, 900, "Viviore 0.0.1");
@@ -58,6 +63,15 @@ void castWindow(const vector<OreVoxel> &oreBlocks,
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(mode3D ? RAYWHITE : RAYWHITE);
+
+    if (IsKeyPressed(KEY_ENTER)) {
+      plantOres(litho, x, y, z, baseCoef, neighborIntensity, vacancyImpact,
+                depthCurve, rootDepthLayers);
+
+      oreBlocks.clear();
+      seedGrades(litho, oreBlocks, x, y, z, depthCurve);
+      surfaceBlocks = extractSurface(oreBlocks);
+    }
 
     if (IsKeyPressed(KEY_TAB))
       mode3D = !mode3D;

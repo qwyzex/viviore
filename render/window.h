@@ -18,6 +18,8 @@
 
 using namespace std;
 
-void castWindow(const vector<OreVoxel> &oreBlocks,
-                const vector<OreVoxel> &surfaceBlocks, Axis &axis, int &x,
-                int &y, int &z);
+void castWindow(vector<OreVoxel> &oreBlocks, vector<OreVoxel> &surfaceBlocks,
+                Axis &axis, int &x, int &y, int &z,
+                vector<vector<vector<block>>> &litho, int &baseCoef,
+                int &neighborIntensity, int &vacancyImpact, float &depthCurve,
+                int &rootDepthLayers);

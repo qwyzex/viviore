@@ -17,7 +17,7 @@ static inline float clampFloat(float v, float lo, float hi) {
 
 void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
                int &baseCoef, int &neighborIntensity, int &vacancyImpact,
-               float depthCurve, int rootDepthLayers) {
+               float &depthCurve, int &rootDepthLayers) {
   // Ensure parameters are sane
   float curve = depthCurve > 0.0f ? depthCurve : 1.0f;
   int roots = max(1, min(y, rootDepthLayers));
@@ -25,8 +25,9 @@ void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
   // Phase 1: Base ore placement influenced by depth and neighbor/ vacancy bias
   for (int i = 0; i < x; i++) {
     for (int j = 0; j < y; j++) {
-      // Depth ratio (0 = surface, 1 = deepest layer)
-      float depthRatio = y > 1 ? (float)j / (float)(y - 1) : 0.0f;
+      // Depth ratio (0 = surface, 1 = deepest) according to rendering coords
+      // (y=0 is bottom, y=y-1 is surface in the current renderer).
+      float depthRatio = y > 1 ? (float)(y - 1 - j) / (float)(y - 1) : 0.0f;
       // Log-like curve to make ore rare near surface and rapidly increase with
       // depth
       float depthFactor = logf(1.0f + curve * depthRatio) / logf(1.0f + curve);
@@ -77,9 +78,10 @@ void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
       x, vector<vector<bool>>(y, vector<bool>(z, false)));
   queue<tuple<int, int, int>> q;
 
-  int rootStart = max(0, y - roots);
+  // Root veins are treated as the lowest layers in the renderer (y=0..roots-1)
+  int rootEnd = min(roots, y);
   for (int i = 0; i < x; i++) {
-    for (int j = rootStart; j < y; j++) {
+    for (int j = 0; j < rootEnd; j++) {
       for (int k = 0; k < z; k++) {
         if (arr[i][j][k].isOre) {
           visited[i][j][k] = true;

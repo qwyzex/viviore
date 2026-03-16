@@ -13,4 +13,4 @@ using namespace std;
 // treat as "root" veins that all ore must connect to
 void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
                int &baseCoef, int &neighborIntensity, int &vacancyImpact,
-               float depthCurve = 10.0f, int rootDepthLayers = 4);
+               float &depthCurve, int &rootDepthLayers);

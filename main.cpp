@@ -23,16 +23,16 @@
 
 using namespace std;
 
-int x = 60, y = 60, z = 60;
-int baseCoef = 8, neighborIntensity = 15, vacancyImpact = 3;
+int x = 70, y = 70, z = 70;
+int baseCoef = 3, neighborIntensity = 5, vacancyImpact = 3;
 
 // Depth tuning parameters:
 //  - depthCurve: how quickly ore probability ramps up with depth (higher =>
 //  steeper/log growth)
 //  - rootDepthLayers: number of deepest layers treated as "root veins"; all ore
 //  must connect to these
-float depthCurve = 15.0f;
-int rootDepthLayers = 6;
+float depthCurve = 40.0f;
+int rootDepthLayers = 5;
 
 int main() {
   srand(time(NULL));
@@ -60,8 +60,9 @@ int main() {
 
   vector<OreVoxel> surfaceBlocks = extractSurface(oreBlocks);
 
-  exportOre(litho, x, y, z);
-  castWindow(oreBlocks, surfaceBlocks, currentAxis, x, y, z);
+  //   exportOre(litho, x, y, z);
+  castWindow(oreBlocks, surfaceBlocks, currentAxis, x, y, z, litho, baseCoef,
+             neighborIntensity, vacancyImpact, depthCurve, rootDepthLayers);
 
   return 0;
 }
