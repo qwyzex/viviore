@@ -22,6 +22,18 @@ void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
   float curve = depthCurve > 0.0f ? depthCurve : 1.0f;
   int roots = max(1, min(y, rootDepthLayers));
 
+  // Remember which blocks were already ore before this iteration.
+  // This lets us grow new ore without losing previously generated ore.
+  vector<vector<vector<bool>>> wasOre(
+      x, vector<vector<bool>>(y, vector<bool>(z, false)));
+  for (int i = 0; i < x; i++) {
+    for (int j = 0; j < y; j++) {
+      for (int k = 0; k < z; k++) {
+        wasOre[i][j][k] = arr[i][j][k].isOre;
+      }
+    }
+  }
+
   // Phase 1: Base ore placement influenced by depth and neighbor/ vacancy bias
   for (int i = 0; i < x; i++) {
     for (int j = 0; j < y; j++) {
@@ -61,19 +73,23 @@ void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
         }
 
         float chance = (float)baseCoef + (float)neighbours * neighborIntensity -
-                       (float)vacancy * vacancyImpact * baseCoef * 0.015f;
+                       ((float)vacancy * vacancyImpact * baseCoef * 0.005f);
 
         // Depth bias makes ore less likely near surface and more likely deeper
         // down
         chance *= depthScale;
         chance = clampFloat(chance, 0.0f, 100.0f);
 
-        arr[i][j][k].isOre = rand() % 100 < (int)chance;
+        // Only add ore in previously empty cells (so existing ore is preserved)
+        if (!arr[i][j][k].isOre) {
+          arr[i][j][k].isOre = rand() % 100 < (int)chance;
+        }
       }
     }
   }
 
   // Phase 2: prune isolated vein pockets not connected to deep "root" veins
+  // (but do not delete ore that already existed prior to this iteration)
   vector<vector<vector<bool>>> visited(
       x, vector<vector<bool>>(y, vector<bool>(z, false)));
   queue<tuple<int, int, int>> q;
@@ -84,6 +100,18 @@ void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
     for (int j = 0; j < rootEnd; j++) {
       for (int k = 0; k < z; k++) {
         if (arr[i][j][k].isOre) {
+          visited[i][j][k] = true;
+          q.push({i, j, k});
+        }
+      }
+    }
+  }
+
+  // Keep all ore that already existed before this call, even if it is isolated.
+  for (int i = 0; i < x; i++) {
+    for (int j = 0; j < y; j++) {
+      for (int k = 0; k < z; k++) {
+        if (wasOre[i][j][k]) {
           visited[i][j][k] = true;
           q.push({i, j, k});
         }
@@ -116,7 +144,7 @@ void plantOres(vector<vector<vector<block>>> &arr, int &x, int &y, int &z,
   for (int i = 0; i < x; i++) {
     for (int j = 0; j < y; j++) {
       for (int k = 0; k < z; k++) {
-        if (arr[i][j][k].isOre && !visited[i][j][k]) {
+        if (arr[i][j][k].isOre && !visited[i][j][k] && !wasOre[i][j][k]) {
           arr[i][j][k].isOre = false;
         }
       }

@@ -23,15 +23,15 @@
 
 using namespace std;
 
-int x = 70, y = 70, z = 70;
-int baseCoef = 3, neighborIntensity = 5, vacancyImpact = 3;
+int x = 80, y = 80, z = 80;
+int baseCoef = 2, neighborIntensity = 14, vacancyImpact = 4;
 
 // Depth tuning parameters:
 //  - depthCurve: how quickly ore probability ramps up with depth (higher =>
 //  steeper/log growth)
 //  - rootDepthLayers: number of deepest layers treated as "root veins"; all ore
 //  must connect to these
-float depthCurve = 40.0f;
+float depthCurve = 100.0f;
 int rootDepthLayers = 5;
 
 int main() {
